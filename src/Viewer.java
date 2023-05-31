@@ -1,11 +1,10 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class DemoViewer {
+public class Viewer {
     public static void main(String[] args) {
         JFrame frame = new JFrame();
         Container pane = frame.getContentPane();
@@ -53,6 +52,12 @@ public class DemoViewer {
                         Color.BLUE
                 ));
 
+                // Inflating the tetrahedron
+                final int INFLATION_LEVEL = 4;
+                for (int i = 0; i < INFLATION_LEVEL; i++) {
+                    tris = inflate(tris);
+                }
+
                 double heading = Math.toRadians(headingSlider.getValue());
 
                 Matrix3 headingTransform = new Matrix3(new double[] {
@@ -70,9 +75,6 @@ public class DemoViewer {
                 });
 
                 Matrix3 transform = headingTransform.multiply(pitchTransform);
-
-//                graph2.translate(getWidth() / 2, getHeight() / 2);
-//                graph2.setColor(Color.WHITE);
 
                 BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
 
@@ -132,19 +134,10 @@ public class DemoViewer {
                             }
                         }
                     }
-
-//                    Path2D path = new Path2D.Double();
-//                    path.moveTo(v1.x, v1.y);
-//                    path.lineTo(v2.x, v2.y);
-//                    path.lineTo(v3.x, v3.y);
-//
-//                    path.closePath();
-//                    graph2.draw(path);
                 }
 
                 graph2.drawImage(img, 0, 0, null);
             }
-
         };
         pane.add(renderPanel, BorderLayout.CENTER);
 
@@ -166,5 +159,31 @@ public class DemoViewer {
         int blue = (int) Math.pow(blueLinear, 1/2.4);
 
         return new Color(red, green, blue);
+    }
+
+    public static ArrayList<Triangle> inflate(ArrayList<Triangle> tris) {
+        ArrayList<Triangle> result = new ArrayList<>();
+
+        for (Triangle t: tris) {
+            Vertex m1 = new Vertex((t.v1.x + t.v2.x) / 2, (t.v1.y + t.v2.y) / 2, (t.v1.z + t.v2.z) / 2);
+            Vertex m2 = new Vertex((t.v2.x + t.v3.x) / 2, (t.v2.y + t.v3.y) / 2, (t.v2.z + t.v3.z) / 2);
+            Vertex m3 = new Vertex((t.v1.x + t.v3.x) / 2, (t.v1.y + t.v3.y) / 2, (t.v1.z + t.v3.z) / 2);
+
+            result.add(new Triangle(t.v1, m1, m3, t.color));
+            result.add(new Triangle(t.v2, m1, m2, t.color));
+            result.add(new Triangle(t.v3, m2, m3, t.color));
+            result.add(new Triangle(m1, m2, m3, t.color));
+        }
+
+        for (Triangle t: result) {
+            for (Vertex v: new Vertex[] { t.v1, t.v2, t.v3 }) {
+                double l = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z) / Math.sqrt(30000);
+                v.x /= l;
+                v.y /= l;
+                v.z /= l;
+            }
+        }
+
+        return result;
     }
 }

@@ -1,5 +1,5 @@
 public class Matrix3 {
-    double[] values;
+    public double[] values;
     Matrix3(double[] values) {
         this.values = values;
     }

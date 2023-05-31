@@ -1,7 +1,7 @@
 public class Vertex {
-    protected double x;
-    protected double y;
-    protected double z;
+    double x;
+    double y;
+    double z;
 
     Vertex(double x, double y, double z) {
         this.x = x;
